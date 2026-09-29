@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teste de Agendamento COP</title>
+<link rel="icon" type="image/png" href="img/avanca-icone.png">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",system-ui,sans-serif}
+[hidden]{display:none !important}
+:root{
+  --fundo:#F1F5F9; --card:#FFFFFF; --elevado:#F8FAFC; --borda:#E2E8F0;
+  --texto:#0F172A; --suave:#64748B;
+  --primaria:#2563EB; --primaria-hover:#1D4ED8; --primaria-leve:#DBEAFE;
+  --erro:#DC2626; --erro-leve:#FEE2E2;
+  --ok:#16A34A; --ok-leve:#DCFCE7;
+  --alerta:#D97706; --alerta-leve:#FEF3C7;
+  --marca:#0F1E3D;
+}
+body{background:var(--fundo);color:var(--texto);font-size:14px;line-height:1.45}
+button{cursor:pointer;font:inherit}
+button:disabled{cursor:not-allowed;opacity:.5}
+
+/* ---------- topo ---------- */
+.topo{background:var(--marca);color:#fff;display:flex;align-items:center;gap:16px;padding:12px 20px;flex-wrap:wrap;position:sticky;top:0;z-index:10}
+.topo .marca{display:flex;align-items:center;gap:14px;font-weight:700;font-size:16px;letter-spacing:.3px}
+.topo .marca img{height:46px;margin:-8px -10px}
+.topo .marca .div{width:1px;height:24px;background:rgba(255,255,255,.3)}
+.topo .marca span span{font-weight:400;opacity:.7}
+@media (max-width:600px){.topo .marca .div,.topo .marca>span{display:none}}
+.topo .espaco{flex:1}
+.topo .stat{font-size:13px;opacity:.9}
+.topo .stat b{font-size:15px}
+.timer{font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;background:rgba(255,255,255,.1);padding:4px 12px;border-radius:6px}
+.timer.pouco{background:var(--erro)}
+.btn{border:0;border-radius:6px;padding:9px 16px;font-weight:600}
+.btn-primario{background:var(--primaria);color:#fff}
+.btn-primario:hover:not(:disabled){background:var(--primaria-hover)}
+.btn-claro{background:var(--card);color:var(--texto);border:1px solid var(--borda)}
+.btn-claro:hover{background:var(--elevado)}
+.btn-perigo{background:#fff;color:var(--erro);border:1px solid #fff}
+
+main{padding:16px;max-width:1600px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--borda);border-radius:10px;padding:16px}
+.card + .card{margin-top:16px}
+h2{font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--suave);margin-bottom:12px}
+
+/* ---------- início ---------- */
+.inicio{max-width:720px;margin:24px auto}
+.inicio .card{padding:0;overflow:hidden}
+.inicio .corpo{padding:24px}
+.banner{display:block;width:100%;height:290px;object-fit:cover;object-position:center 32%;background:#0B2A5B}
+.marcas{display:block;height:26px;max-width:100%;margin:0 auto;opacity:.55}
+.inicio .rodape{border-top:1px solid var(--borda);padding:14px 24px;background:var(--elevado)}
+.inicio h1{font-size:24px;margin-bottom:6px}
+.inicio p.sub{color:var(--suave);margin-bottom:20px}
+.inicio ol{padding-left:20px;margin:12px 0 20px}
+.inicio li{margin-bottom:6px}
+.campo{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.campo label{font-weight:600;font-size:13px}
+input[type=text],select{border:1px solid var(--borda);border-radius:6px;padding:9px 10px;font:inherit;background:#fff;color:var(--texto);width:100%}
+input[type=text]:focus,select:focus{outline:2px solid var(--primaria-leve);border-color:var(--primaria)}
+
+/* ---------- tela do teste ---------- */
+.grade{display:grid;grid-template-columns:300px minmax(0,1fr) minmax(0,1.25fr);gap:16px;align-items:start}
+@media (max-width:1200px){.grade{grid-template-columns:280px minmax(0,1fr)}.col-dir{grid-column:1 / -1}}
+@media (max-width:760px){.grade{grid-template-columns:1fr}main{padding:12px}}
+
+.fila{display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 150px);overflow:auto}
+.fila .vazio{color:var(--suave);font-size:13px}
+.item{border:1px solid var(--borda);border-radius:8px;padding:10px 12px;background:var(--card);text-align:left;width:100%;display:block}
+.item:hover{border-color:var(--primaria)}
+.item.sel{border-color:var(--primaria);box-shadow:0 0 0 2px var(--primaria-leve)}
+.item.tratado{background:var(--elevado);opacity:.75}
+.item.novo{animation:pisca 1s ease 3}
+@keyframes pisca{50%{background:var(--alerta-leve)}}
+.item .l1{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--suave)}
+.item .l2{font-weight:600;margin:2px 0}
+.item .l3{font-size:12px;color:var(--suave)}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;white-space:nowrap}
+.tag-pend{background:var(--alerta-leve);color:var(--alerta)}
+.tag-ag{background:var(--primaria-leve);color:var(--primaria)}
+.tag-nao{background:#E2E8F0;color:#334155}
+.tag-novo{background:var(--erro);color:#fff}
+
+.detalhe .vazio{color:var(--suave);text-align:center;padding:40px 0}
+.det-topo{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.det-topo h3{font-size:18px}
+.dados{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin-bottom:16px}
+.dados div span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--suave)}
+.dados div b{font-weight:600}
+.dados .full{grid-column:1 / -1}
+.obs{background:var(--elevado);border-left:3px solid var(--borda);padding:8px 10px;border-radius:4px}
+.acoes{border-top:1px solid var(--borda);padding-top:14px}
+.alternar{display:flex;gap:8px;margin-bottom:14px}
+.alternar button{flex:1;border:1px solid var(--borda);background:#fff;border-radius:6px;padding:9px;font-weight:600;color:var(--suave)}
+.alternar button.ativo{border-color:var(--primaria);background:var(--primaria-leve);color:var(--primaria)}
+.linha{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:500px){.linha,.dados{grid-template-columns:1fr}}
+.decidido{background:var(--elevado);border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+
+.regras ul{padding-left:18px}
+.regras li{margin-bottom:5px}
+
+table{border-collapse:collapse;width:100%}
+th,td{border-bottom:1px solid var(--borda);padding:7px 8px;text-align:left;vertical-align:top;font-size:13px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--suave);font-weight:600;background:var(--elevado)}
+.rolar{overflow-x:auto}
+.chip{display:inline-block;font-size:11px;background:var(--elevado);border:1px solid var(--borda);border-radius:4px;padding:0 5px;margin:1px 2px 1px 0}
+.agenda td{min-width:110px;height:48px}
+.agenda td.nome{min-width:120px;font-weight:600}
+.reserva{display:block;width:100%;text-align:left;font-size:11px;background:var(--primaria-leve);color:#1E3A8A;border:0;border-radius:4px;padding:3px 6px;margin-bottom:3px;line-height:1.3}
+.reserva:hover{outline:1px solid var(--primaria)}
+.reserva.dupla{background:var(--erro-leve);color:#7F1D1D}
+
+.toast{position:fixed;right:20px;bottom:20px;background:var(--marca);color:#fff;padding:12px 16px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.2);z-index:20;max-width:320px;animation:sobe .25s ease}
+@keyframes sobe{from{transform:translateY(10px);opacity:0}}
+
+/* ---------- resultado ---------- */
+.res-topo{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.kpi{flex:1;min-width:160px}
+.kpi span{display:block;font-size:12px;color:var(--suave);text-transform:uppercase;letter-spacing:.4px}
+.kpi b{font-size:28px}
+.kpi small{color:var(--suave)}
+.peg{display:flex;gap:16px;flex-wrap:wrap}
+.peg .card{flex:1;min-width:260px;margin:0}
+.peg .card + .card{margin:0}
+.ok{color:var(--ok);font-weight:700}
+.nok{color:var(--erro);font-weight:700}
+.neutro{color:var(--alerta);font-weight:700}
+tr.linha-nok td{background:#FFF7F7}
+.botoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+
+/* ---------- relatório (tela e PDF) ---------- */
+.relatorio{max-width:1100px;margin:0 auto}
+.rel-cab{display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--borda);border-radius:10px;padding:10px 16px;margin-bottom:16px}
+.rel-cab .avanca{height:64px;margin:-10px -14px}
+.rel-cab .titulo{flex:1;text-align:center}
+.rel-cab .titulo b{display:block;font-size:18px;color:var(--marca)}
+.rel-cab .titulo span{color:var(--suave);font-size:13px}
+.rel-cab .cop{width:96px;height:56px;object-fit:cover;object-position:center 40%;border-radius:6px}
+.kpi-nome{font-size:20px !important}
+.col-prot{width:9%}.col-cham{width:30%}.col-dec{width:24%}.col-res{width:4%;text-align:center}
+.assin{display:flex;gap:48px;margin-top:40px}
+.assin div{flex:1;border-top:1px solid var(--texto);padding-top:4px;text-align:center;font-size:12px;color:var(--suave)}
+.rel-rodape{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:24px;padding-top:12px;border-top:1px solid var(--borda);font-size:11px;color:var(--suave)}
+.rel-rodape img{height:22px;opacity:.6}
+
+/* ---------- impressão A4 ---------- */
+@page{size:A4 portrait;margin:10mm 12mm}
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  html,body{background:#fff;font-size:9pt}
+  .topo,.botoes,.toast{display:none !important}
+  main{padding:0;max-width:none}
+  .relatorio{max-width:none}
+  .relatorio > .card{border:0;padding:0;border-radius:0}
+  .relatorio > .card + .card{margin-top:10px}
+  h2{font-size:8pt;margin-bottom:6px}
+  .rel-cab{border:0;border-bottom:2px solid var(--marca);border-radius:0;padding:0 0 6px;margin-bottom:10px}
+  .rel-cab .avanca{height:48px}
+  .rel-cab .titulo b{font-size:13pt}
+  .rel-cab .titulo span{font-size:9pt}
+  .rel-cab .cop{width:70px;height:42px}
+  .res-topo{gap:10px;margin-bottom:8px}
+  .kpi{min-width:0;border:1px solid var(--borda);border-radius:6px;padding:6px 8px}
+  .kpi b{font-size:15pt}
+  .kpi span{font-size:7pt}
+  .peg{gap:10px}
+  .peg .card{min-width:0;padding:6px 8px;border-radius:6px}
+  .peg p{font-size:8.5pt}
+  .rolar{overflow:visible}
+  table{font-size:7.8pt;page-break-inside:auto}
+  th,td{padding:3px 5px;line-height:1.3;font-size:7.8pt}
+  .kpi-nome{font-size:11pt !important}
+  .col-prot{width:8%}.col-cham{width:29%}.col-dec{width:23%}
+  th{font-size:7pt}
+  thead{display:table-header-group}
+  tr,.rel-cab,.res-topo,.peg,.assin,.rel-rodape{break-inside:avoid;page-break-inside:avoid}
+  .assin{margin-top:26px}
+  .assin div{font-size:8pt}
+  .rel-rodape{margin-top:12px;padding-top:6px;font-size:7.5pt}
+  .rel-rodape img{height:16px}
+}
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <div class="marca"><img src="img/avanca-logo-branco.png" alt="Avança"><i class="div"></i><span>COP <span>· Teste prático de agendamento</span></span></div>
+  <div class="espaco"></div>
+  <div class="stat" id="topo-candidato" hidden></div>
+  <div class="stat" id="topo-contadores" hidden></div>
+  <div class="timer" id="topo-timer" hidden>15:00</div>
+  <button class="btn btn-perigo" id="btn-finalizar" hidden>Finalizar teste</button>
+</header>
+
+<main>
+
+  <!-- ================= INÍCIO ================= -->
+  <section id="tela-inicio" class="inicio">
+    <div class="card">
+      <img class="banner" src="img/cop-logo.jpg" alt="COP">
+      <div class="corpo">
+      <h1>Simulação de agendamento</h1>
+      <p class="sub">Você é o operador do COP no plantão de hoje. Os chamados vão chegando na fila e você monta a agenda técnica de <b>amanhã</b>.</p>
+
+      <h2>Como funciona</h2>
+      <ol>
+        <li>Os chamados chegam <b>ao longo do teste</b>, não todos de uma vez. Fique de olho na fila.</li>
+        <li>Para cada chamado, <b>agende</b> (técnico + janela) ou <b>não agende</b> e informe o motivo.</li>
+        <li>Antes de agendar, confira a <b>escala técnica</b>, as <b>regras de atendimento</b> e a <b>preferência do cliente</b>. O sistema não bloqueia erros: a responsabilidade é sua.</li>
+        <li>Se precisar corrigir algo, você pode <b>reabrir</b> um chamado já tratado.</li>
+        <li>O teste tem <b id="ini-duracao">15</b> minutos e no máximo 15 chamados. Ao fim do tempo ele é encerrado automaticamente.</li>
+      </ol>
+
+      <div class="campo">
+        <label for="nome">Nome completo</label>
+        <input type="text" id="nome" placeholder="Digite seu nome" autocomplete="off">
+      </div>
+      <button class="btn btn-primario" id="btn-iniciar" disabled>Iniciar teste</button>
+      </div>
+      <div class="rodape"><img class="marcas" src="img/marcas.png" alt="Alta Rede | AMO | K2"></div>
+    </div>
+  </section>
+
+  <!-- ================= TESTE ================= -->
+  <section id="tela-teste" class="grade" hidden>
+
+    <div class="col-esq card">
+      <h2>Fila de chamados</h2>
+      <div class="fila" id="fila"></div>
+    </div>
+
+    <div class="col-meio">
+      <div class="card detalhe" id="detalhe"></div>
+
+      <div class="card regras">
+        <h2>Regras de atendimento</h2>
+        <ul>
+          <li>Horário de atendimento: <b>08:00 às 12:00</b> e <b>13:00 às 17:00</b>. Sem atendimento das 12:00 às 13:00 nem depois das 17:00.</li>
+          <li>Janelas de agendamento: <b>08–10</b>, <b>10–12</b>, <b>13–15</b> e <b>15–17</b>.</li>
+          <li>Cada técnico atende <b>1 chamado por janela</b>.</li>
+          <li>O técnico precisa <b>atender a cidade</b>, ter a <b>habilidade</b> do tipo de serviço e estar <b>trabalhando</b> na janela escolhida.</li>
+          <li>A <b>preferência de horário do cliente</b> deve ser respeitada.</li>
+          <li>Área de cobertura: <b id="lista-cobertura"></b>.</li>
+          <li>Se não for possível agendar, registre o motivo. Chamado sem vaga é reagendado para outro dia.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-dir">
+      <div class="card">
+        <h2>Escala técnica · amanhã</h2>
+        <div class="rolar"><table id="escala"></table></div>
+      </div>
+      <div class="card">
+        <h2>Agenda de amanhã</h2>
+        <div class="rolar"><table class="agenda" id="agenda"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RESULTADO ================= -->
+  <section id="tela-resultado" hidden></section>
+
+</main>
+
+<script>
+/* =====================================================================
+ * CONFIGURAÇÃO
+ * Ajuste aqui a duração do teste e o ritmo de chegada dos chamados.
+ * ===================================================================== */
+var CONFIG = {
+  DURACAO_MIN: 15,   // tempo total do teste
+  INICIAIS: 2,       // chamados que já estão na fila ao iniciar
+  INTERVALO_S: 35    // segundos entre a chegada de um chamado e o próximo
+};
+
+var JANELAS = [
+  { id: "J1", label: "08:00–10:00" },
+  { id: "J2", label: "10:00–12:00" },
+  { id: "J3", label: "13:00–15:00" },
+  { id: "J4", label: "15:00–17:00" }
+];
+
+// Preferência do cliente -> janelas aceitas
+var PREFERENCIAS = {
+  "Manhã (08h–12h)": ["J1", "J2"],
+  "Tarde (13h–17h)": ["J3", "J4"],
+  "Qualquer horário": ["J1", "J2", "J3", "J4"],
+  "Somente após 18h": []
+};
+
+var COBERTURA = ["Nova Friburgo", "Bom Jardim", "Cabo Frio", "Rio das Ostras", "Teresópolis"];
+
+var TODAS = ["Instalação", "Reparo", "Troca de equipamento", "Retirada de equipamento"];
+
+var TECNICOS = [
+  { id: "carlos",  nome: "Carlos Souza",   cidades: ["Nova Friburgo", "Bom Jardim"], turno: "08:00–17:00", janelas: ["J1","J2","J3","J4"], habilidades: TODAS, ativo: true,  status: "Ativo" },
+  { id: "rafael",  nome: "Rafael Lima",    cidades: ["Nova Friburgo"],               turno: "08:00–12:00", janelas: ["J1","J2"],           habilidades: ["Reparo", "Troca de equipamento"], ativo: true, status: "Ativo" },
+  { id: "juliana", nome: "Juliana Alves",  cidades: ["Cabo Frio", "Rio das Ostras"], turno: "08:00–17:00", janelas: ["J1","J2","J3","J4"], habilidades: TODAS, ativo: true,  status: "Ativo" },
+  // PEGADINHA 1: aparece na escala e na agenda como qualquer outro, mas está de férias.
+  { id: "marcos",  nome: "Marcos Pereira", cidades: ["Cabo Frio"],                   turno: "08:00–17:00", janelas: ["J1","J2","J3","J4"], habilidades: TODAS, ativo: false, status: "Férias até 04/10" },
+  { id: "bruno",   nome: "Bruno Costa",    cidades: ["Rio das Ostras"],              turno: "08:00–17:00", janelas: ["J1","J2","J3","J4"], habilidades: ["Reparo", "Troca de equipamento", "Retirada de equipamento"], ativo: true, status: "Ativo" },
+  { id: "diego",   nome: "Diego Rocha",    cidades: ["Teresópolis"],                 turno: "13:00–17:00", janelas: ["J3","J4"],           habilidades: ["Instalação", "Reparo", "Troca de equipamento"], ativo: true, status: "Ativo" }
+];
+
+var MOTIVOS = {
+  sem_vaga:  "Sem técnico/janela disponível (reagendar outro dia)",
+  horario:   "Fora do horário de atendimento",
+  cobertura: "Cidade fora da área de cobertura",
+  duplicado: "Chamado duplicado",
+  dados:     "Dados incompletos do cliente"
+};
+
+/*
+ * Chamados, na ordem de chegada.
+ * esperado: motivo fixo quando o chamado NÃO deve ser agendado por regra.
+ * Os demais são avaliados dinamicamente (validade do agendamento ou,
+ * se marcado "sem vaga", se realmente não havia vaga na agenda final).
+ * dup: número do chamado do qual este é duplicado (PEGADINHA 2).
+ */
+var CHAMADOS = [
+  { n: 1,  prot: "240101", cliente: "Ana Beatriz Moraes", contrato: "10482", tel: "(22) 99812-4410", cidade: "Nova Friburgo", endereco: "Rua Farinha Filho, 212 – Centro", tipo: "Reparo", pref: "Manhã (08h–12h)", obs: "Sem conexão desde ontem à noite. LED LOS vermelho na ONU." },
+  { n: 2,  prot: "240102", cliente: "Paulo Henrique Dias", contrato: "20931", tel: "(22) 99744-1023", cidade: "Cabo Frio", endereco: "Av. Assunção, 88 – Passagem", tipo: "Instalação", pref: "Qualquer horário", obs: "Cliente novo, plano 500 Mega. Tem gente em casa o dia todo." },
+  { n: 3,  prot: "240103", cliente: "Márcia Gomes", contrato: "31077", tel: "(21) 98870-3321", cidade: "Teresópolis", endereco: "Rua Delfim Moreira, 45 – Várzea", tipo: "Reparo", pref: "Manhã (08h–12h)", obs: "Cliente trabalha à tarde; não haverá ninguém em casa depois das 12h." },
+  { n: 4,  prot: "240104", cliente: "Roberto Nunes", contrato: "20877", tel: "(22) 99901-5566", cidade: "Rio das Ostras", endereco: "Rua Teresópolis, 310 – Centro", tipo: "Instalação", pref: "Tarde (13h–17h)", obs: "Instalação em apartamento, 3º andar. Portaria libera a partir das 13h." },
+  { n: 5,  prot: "240105", cliente: "Luciana Freitas", contrato: "11203", tel: "(22) 99633-7788", cidade: "Bom Jardim", endereco: "Rua Gov. Roberto Silveira, 17 – Centro", tipo: "Troca de equipamento", pref: "Qualquer horário", obs: "Roteador queimou após queda de energia." },
+  { n: 6,  prot: "240106", cliente: "Fernando Batista", contrato: "40012", tel: "(22) 99120-8890", cidade: "Macaé", endereco: "Rua Tenente Rui Lopes, 90 – Centro", tipo: "Reparo", pref: "Qualquer horário", obs: "Cliente relata lentidão à noite.", esperado: "cobertura" },
+  { n: 7,  prot: "240107", cliente: "Camila Rezende", contrato: "10977", tel: "(22) 99588-2201", cidade: "Nova Friburgo", endereco: "Av. Alberto Braune, 1500 – Centro", tipo: "Instalação", pref: "Manhã (08h–12h)", obs: "Cliente novo, plano 300 Mega." },
+  { n: 8,  prot: "240108", cliente: "Thiago Martins", contrato: "21445", tel: "(22) 99277-6012", cidade: "Cabo Frio", endereco: "Rua Jorge Lóssio, 60 – Centro", tipo: "Reparo", pref: "Manhã (08h–12h)", obs: "Internet caindo várias vezes ao dia." },
+  { n: 9,  prot: "240109", cliente: "Patrícia Lopes", contrato: "21502", tel: "(22) 99345-9087", cidade: "Cabo Frio", endereco: "Rua Raul Veiga, 233 – Braga", tipo: "Troca de equipamento", pref: "Manhã (08h–12h)", obs: "Roteador antigo, cliente pediu troca por modelo Wi-Fi 6." },
+  { n: 10, prot: "240110", cliente: "Eduardo Ramos", contrato: "20655", tel: "(22) 99011-4432", cidade: "Rio das Ostras", endereco: "Rua das Flores, 12 – Costazul", tipo: "Reparo", pref: "Qualquer horário", obs: "Sem sinal no Wi-Fi do quarto." },
+  { n: 11, prot: "240111", cliente: "Sabrina Teixeira", contrato: "31220", tel: "(21) 98712-5540", cidade: "Teresópolis", endereco: "Av. Feliciano Sodré, 700 – Várzea", tipo: "Instalação", pref: "Tarde (13h–17h)", obs: "Cliente novo, plano 500 Mega." },
+  { n: 12, prot: "240112", cliente: "Ana Beatriz Moraes", contrato: "10482", tel: "(22) 99812-4410", cidade: "Nova Friburgo", endereco: "Rua Farinha Filho, 212 – Centro", tipo: "Reparo", pref: "Manhã (08h–12h)", obs: "Cliente sem internet, pede urgência.", dup: 1 },
+  { n: 13, prot: "240113", cliente: "José Carlos Pinto", contrato: "11890", tel: "(22) 99456-3319", cidade: "Nova Friburgo", endereco: "Rua Oliveira Botelho, 400 – Olaria", tipo: "Retirada de equipamento", pref: "Tarde (13h–17h)", obs: "Cancelamento de contrato. Recolher ONU e roteador." },
+  { n: 14, prot: "240114", cliente: "Vanessa Cardoso", contrato: "20710", tel: "(22) 99802-1177", cidade: "Rio das Ostras", endereco: "Rua Pernambuco, 55 – Âncora", tipo: "Reparo", pref: "Somente após 18h", obs: "Cliente só está em casa depois das 18h, quando volta do trabalho.", esperado: "horario" },
+  { n: 15, prot: "240115", cliente: "Gustavo Almeida", contrato: "20999", tel: "(22) 99390-6621", cidade: "Rio das Ostras", endereco: "Rua Bahia, 140 – Jardim Mariléa", tipo: "Troca de equipamento", pref: "Manhã (08h–12h)", obs: "ONU com defeito, já testado remotamente pelo suporte." }
+];
+
+/* =====================================================================
+ * ESTADO
+ * ===================================================================== */
+var st = {
+  nome: "",
+  inicio: 0,
+  fim: false,
+  chegada: {},    // n -> ms em que chegou
+  decisoes: {},   // n -> { tipo: "agendar", tec, jan, em } | { tipo: "nao", motivo, em }
+  primeira: {},   // n -> ms da primeira decisão (tempo de resposta)
+  vistos: {},     // n -> true quando o candidato abriu o chamado
+  sel: null,
+  modo: "agendar" // aba do formulário: agendar | nao
+};
+var relogio = null;
+var audio = null;
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function chamado(n) { return CHAMADOS[n - 1]; }
+function tecnico(id) { return TECNICOS.find(function (t) { return t.id === id; }); }
+function janela(id) { return JANELAS.find(function (j) { return j.id === id; }); }
+function mmss(seg) { seg = Math.max(0, Math.round(seg)); return String(Math.floor(seg / 60)).padStart(2, "0") + ":" + String(seg % 60).padStart(2, "0"); }
+function chegaEm(i) { return i < CONFIG.INICIAIS ? 0 : (i - CONFIG.INICIAIS + 1) * CONFIG.INTERVALO_S; }
+function recebidos() { return CHAMADOS.filter(function (c) { return st.chegada[c.n] != null; }); }
+
+function agendamentos() {
+  return Object.keys(st.decisoes)
+    .map(function (n) { var d = st.decisoes[n]; return { n: +n, tec: d.tec, jan: d.jan, em: d.em, tipo: d.tipo }; })
+    .filter(function (d) { return d.tipo === "agendar"; });
+}
+
+/* =====================================================================
+ * INÍCIO
+ * ===================================================================== */
+$("ini-duracao").textContent = CONFIG.DURACAO_MIN;
+$("lista-cobertura").textContent = COBERTURA.join(", ");
+$("nome").addEventListener("input", function () { $("btn-iniciar").disabled = this.value.trim().length < 3; });
+$("nome").addEventListener("keydown", function (e) { if (e.key === "Enter" && !$("btn-iniciar").disabled) iniciar(); });
+$("btn-iniciar").addEventListener("click", iniciar);
+$("btn-finalizar").addEventListener("click", function () {
+  var pend = recebidos().filter(function (c) { return !st.decisoes[c.n]; }).length;
+  var faltam = CHAMADOS.length - recebidos().length;
+  var msg = "Finalizar o teste agora?";
+  if (pend || faltam) msg += "\n\nAinda há " + pend + " chamado(s) pendente(s)" + (faltam ? " e " + faltam + " ainda não chegaram" : "") + ". Eles contam como não tratados.";
+  if (confirm(msg)) finalizar(false);
+});
+
+function iniciar() {
+  st.nome = $("nome").value.trim();
+  st.inicio = Date.now();
+  try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audio = null; }
+
+  $("tela-inicio").hidden = true;
+  $("tela-teste").hidden = false;
+  ["topo-candidato", "topo-contadores", "topo-timer", "btn-finalizar"].forEach(function (id) { $(id).hidden = false; });
+  $("topo-candidato").innerHTML = "Candidato: <b>" + esc(st.nome) + "</b>";
+
+  renderEscala();
+  tick();
+  relogio = setInterval(tick, 1000);
+  window.addEventListener("beforeunload", avisoSaida);
+}
+
+function avisoSaida(e) { if (!st.fim) { e.preventDefault(); e.returnValue = ""; } }
+
+function tick() {
+  var dec = (Date.now() - st.inicio) / 1000;
+  var novos = [];
+  CHAMADOS.forEach(function (c, i) {
+    if (st.chegada[c.n] == null && dec >= chegaEm(i)) {
+      st.chegada[c.n] = st.inicio + chegaEm(i) * 1000;
+      novos.push(c);
+    }
+  });
+  if (novos.length) {
+    renderFila();
+    if (dec > 1) { toast("Novo chamado #" + novos[0].prot + " · " + novos[0].cidade); bip(); }
+    if (st.sel == null) selecionar(novos[0].n);
+  }
+  var resta = CONFIG.DURACAO_MIN * 60 - dec;
+  $("topo-timer").textContent = mmss(resta);
+  $("topo-timer").classList.toggle("pouco", resta <= 120);
+  renderContadores();
+  if (resta <= 0) finalizar(true);
+}
+
+function renderContadores() {
+  var rec = recebidos();
+  var pend = rec.filter(function (c) { return !st.decisoes[c.n]; }).length;
+  $("topo-contadores").innerHTML = "Recebidos <b>" + rec.length + "/" + CHAMADOS.length + "</b> · Pendentes <b>" + pend + "</b>";
+  document.title = (pend ? "(" + pend + ") " : "") + "Teste de Agendamento COP";
+}
+
+function toast(msg) {
+  var t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function () { t.remove(); }, 3500);
+}
+
+function bip() {
+  if (!audio) return;
+  try {
+    var o = audio.createOscillator(), g = audio.createGain();
+    o.frequency.value = 880; g.gain.value = 0.05;
+    o.connect(g); g.connect(audio.destination);
+    o.start(); o.stop(audio.currentTime + 0.15);
+  } catch (e) { /* sem som, tudo bem */ }
+}
+
+/* =====================================================================
+ * FILA
+ * ===================================================================== */
+function resumoDecisao(d) {
+  if (!d) return "";
+  if (d.tipo === "agendar") return tecnico(d.tec).nome + " · " + janela(d.jan).label;
+  return MOTIVOS[d.motivo];
+}
+
+function renderFila() {
+  var rec = recebidos();
+  if (!rec.length) { $("fila").innerHTML = '<p class="vazio">Aguardando chamados…</p>'; return; }
+  var pend = rec.filter(function (c) { return !st.decisoes[c.n]; });
+  var trat = rec.filter(function (c) { return st.decisoes[c.n]; });
+  $("fila").innerHTML = pend.concat(trat).map(function (c) {
+    var d = st.decisoes[c.n];
+    var tag = !d ? (st.vistos[c.n] ? '<span class="tag tag-pend">Pendente</span>' : '<span class="tag tag-novo">Novo</span>')
+      : d.tipo === "agendar" ? '<span class="tag tag-ag">Agendado</span>' : '<span class="tag tag-nao">Não agendado</span>';
+    var cls = "item" + (d ? " tratado" : "") + (st.sel === c.n ? " sel" : "") + (!d && !st.vistos[c.n] ? " novo" : "");
+    return '<button class="' + cls + '" data-n="' + c.n + '">' +
+      '<div class="l1"><span>#' + c.prot + " · " + esc(c.tipo) + "</span>" + tag + "</div>" +
+      '<div class="l2">' + esc(c.cliente) + "</div>" +
+      '<div class="l3">' + esc(c.cidade) + " · " + esc(d ? resumoDecisao(d) : c.pref) + "</div>" +
+      "</button>";
+  }).join("");
+}
+
+$("fila").addEventListener("click", function (e) {
+  var b = e.target.closest("[data-n]");
+  if (b) selecionar(+b.dataset.n);
+});
+
+function selecionar(n) {
+  st.sel = n;
+  st.vistos[n] = true;
+  st.modo = "agendar";
+  renderFila();
+  renderDetalhe();
+}
+
+/* =====================================================================
+ * DETALHE / FORMULÁRIO
+ * ===================================================================== */
+function renderDetalhe() {
+  var box = $("detalhe");
+  if (st.sel == null) { box.innerHTML = '<p class="vazio">Selecione um chamado na fila.</p>'; return; }
+  var c = chamado(st.sel), d = st.decisoes[c.n];
+
+  var html = '<div class="det-topo"><h3>' + esc(c.cliente) + '</h3><span class="tag tag-ag">#' + c.prot + "</span></div>" +
+    '<div class="dados">' +
+      "<div><span>Tipo de serviço</span><b>" + esc(c.tipo) + "</b></div>" +
+      "<div><span>Preferência de horário</span><b>" + esc(c.pref) + "</b></div>" +
+      "<div><span>Cidade</span><b>" + esc(c.cidade) + "</b></div>" +
+      "<div><span>Contrato</span><b>" + esc(c.contrato) + "</b></div>" +
+      '<div class="full"><span>Endereço</span><b>' + esc(c.endereco) + "</b></div>" +
+      "<div><span>Telefone</span><b>" + esc(c.tel) + "</b></div>" +
+      "<div><span>Recebido em</span><b>" + mmss((st.chegada[c.n] - st.inicio) / 1000) + " do teste</b></div>" +
+      '<div class="full"><span>Observação do atendimento</span><div class="obs">' + esc(c.obs) + "</div></div>" +
+    "</div>";
+
+  if (d) {
+    html += '<div class="decidido"><div><b>' + (d.tipo === "agendar" ? "Agendado" : "Não agendado") + ":</b> " + esc(resumoDecisao(d)) + "</div>" +
+      '<button class="btn btn-claro" id="btn-reabrir">Reabrir chamado</button></div>';
+    box.innerHTML = html;
+    $("btn-reabrir").onclick = function () { delete st.decisoes[c.n]; atualizarTudo(); };
+    return;
+  }
+
+  html += '<div class="acoes">' +
+    '<div class="alternar"><button data-modo="agendar" class="' + (st.modo === "agendar" ? "ativo" : "") + '">Agendar</button>' +
+    '<button data-modo="nao" class="' + (st.modo === "nao" ? "ativo" : "") + '">Não agendar</button></div>';
+
+  if (st.modo === "agendar") {
+    html += '<div class="linha">' +
+      '<div class="campo"><label for="f-tec">Técnico</label><select id="f-tec"><option value="">Selecione…</option>' +
+        TECNICOS.map(function (t) { return '<option value="' + t.id + '">' + esc(t.nome) + "</option>"; }).join("") + "</select></div>" +
+      '<div class="campo"><label for="f-jan">Janela</label><select id="f-jan"><option value="">Selecione…</option>' +
+        JANELAS.map(function (j) { return '<option value="' + j.id + '">' + j.label + "</option>"; }).join("") + "</select></div>" +
+      "</div>";
+  } else {
+    html += '<div class="campo"><label for="f-motivo">Motivo</label><select id="f-motivo"><option value="">Selecione…</option>' +
+      Object.keys(MOTIVOS).map(function (k) { return '<option value="' + k + '">' + MOTIVOS[k] + "</option>"; }).join("") + "</select></div>";
+  }
+  html += '<button class="btn btn-primario" id="btn-confirmar" disabled>Confirmar</button></div>';
+  box.innerHTML = html;
+
+  box.querySelectorAll("[data-modo]").forEach(function (b) {
+    b.onclick = function () { st.modo = b.dataset.modo; renderDetalhe(); };
+  });
+  var campos = box.querySelectorAll("select");
+  var validar = function () { $("btn-confirmar").disabled = Array.prototype.some.call(campos, function (s) { return !s.value; }); };
+  campos.forEach(function (s) { s.onchange = validar; });
+  $("btn-confirmar").onclick = function () { confirmar(c.n); };
+}
+
+function confirmar(n) {
+  var agora = Date.now();
+  st.decisoes[n] = st.modo === "agendar"
+    ? { tipo: "agendar", tec: $("f-tec").value, jan: $("f-jan").value, em: agora }
+    : { tipo: "nao", motivo: $("f-motivo").value, em: agora };
+  if (st.primeira[n] == null) st.primeira[n] = agora;
+  var prox = recebidos().find(function (c) { return !st.decisoes[c.n]; });
+  st.sel = prox ? prox.n : n;
+  if (prox) st.vistos[prox.n] = true;
+  st.modo = "agendar";
+  atualizarTudo();
+}
+
+function atualizarTudo() { renderFila(); renderDetalhe(); renderAgenda(); renderContadores(); }
+
+/* =====================================================================
+ * ESCALA E AGENDA
+ * ===================================================================== */
+function renderEscala() {
+  $("escala").innerHTML = "<thead><tr><th>Técnico</th><th>Cidades</th><th>Turno</th><th>Habilidades</th><th>Status</th></tr></thead><tbody>" +
+    TECNICOS.map(function (t) {
+      return "<tr><td><b>" + esc(t.nome) + "</b></td><td>" + t.cidades.map(esc).join("<br>") + "</td><td>" + t.turno + "</td><td>" +
+        t.habilidades.map(function (h) { return '<span class="chip">' + esc(h) + "</span>"; }).join("") + "</td><td>" + esc(t.status) + "</td></tr>";
+    }).join("") + "</tbody>";
+  renderAgenda();
+}
+
+function renderAgenda() {
+  var ags = agendamentos();
+  $("agenda").innerHTML = "<thead><tr><th>Técnico</th>" + JANELAS.map(function (j) { return "<th>" + j.label + "</th>"; }).join("") + "</tr></thead><tbody>" +
+    TECNICOS.map(function (t) {
+      return '<tr><td class="nome">' + esc(t.nome) + "</td>" + JANELAS.map(function (j) {
+        var cel = ags.filter(function (a) { return a.tec === t.id && a.jan === j.id; });
+        return "<td>" + cel.map(function (a) {
+          var c = chamado(a.n);
+          return '<button class="reserva' + (cel.length > 1 ? " dupla" : "") + '" data-n="' + c.n + '">#' + c.prot + " · " + esc(c.cliente.split(" ")[0]) + "<br>" + esc(c.cidade) + " · " + esc(c.tipo) + "</button>";
+        }).join("") + "</td>";
+      }).join("") + "</tr>";
+    }).join("") + "</tbody>";
+}
+
+$("agenda").addEventListener("click", function (e) {
+  var b = e.target.closest("[data-n]");
+  if (b) selecionar(+b.dataset.n);
+});
+
+/* =====================================================================
+ * CORREÇÃO
+ * ===================================================================== */
+// Problemas de colocar o chamado c no técnico/janela. antesDe: só considera
+// conflito com agendamentos feitos antes (o primeiro a ocupar a janela é o válido).
+function problemas(c, tecId, janId, ags, antesDe) {
+  var t = tecnico(tecId), j = janela(janId), r = [];
+  if (!t.ativo) r.push(t.nome + " está de férias (" + t.status + ")");
+  if (t.cidades.indexOf(c.cidade) < 0) r.push(t.nome + " não atende " + c.cidade);
+  if (t.habilidades.indexOf(c.tipo) < 0) r.push(t.nome + " não faz " + c.tipo);
+  if (t.janelas.indexOf(janId) < 0) r.push(t.nome + " não trabalha em " + j.label + " (turno " + t.turno + ")");
+  if (PREFERENCIAS[c.pref].indexOf(janId) < 0) r.push("fora da preferência do cliente (" + c.pref + ")");
+  var ocup = ags.filter(function (a) { return a.tec === tecId && a.jan === janId && a.n !== c.n && (antesDe == null || a.em < antesDe); });
+  if (ocup.length) r.push("conflito: " + t.nome + " já tinha o #" + chamado(ocup[0].n).prot + " nessa janela");
+  return r;
+}
+
+function vagaLivre(c, ags) {
+  for (var i = 0; i < TECNICOS.length; i++)
+    for (var k = 0; k < JANELAS.length; k++)
+      if (!problemas(c, TECNICOS[i].id, JANELAS[k].id, ags, null).length) return { t: TECNICOS[i], j: JANELAS[k] };
+  return null;
+}
+
+function parDuplicado(c) {
+  if (c.dup) return c.dup;
+  var outro = CHAMADOS.find(function (x) { return x.dup === c.n; });
+  return outro ? outro.n : null;
+}
+
+function avaliar(c, ags) {
+  var d = st.decisoes[c.n];
+  var ok = function (m) { return { ok: true, obs: m }; };
+  var erro = function (m) { return { ok: false, obs: m }; };
+  if (!d) return erro(st.chegada[c.n] == null ? "Chamado não chegou a tempo (teste encerrado antes)" : "Chamado não tratado");
+
+  var par = parDuplicado(c);
+  var dp = par && st.decisoes[par];
+  var parAgendado = dp && dp.tipo === "agendar";
+
+  if (d.tipo === "agendar") {
+    if (c.esperado === "cobertura") return erro(c.cidade + " não está na área de cobertura. Não deveria ser agendado.");
+    if (c.esperado === "horario") return erro("Cliente só pode após as 18h, fora do horário de atendimento. Não deveria ser agendado.");
+    var p = problemas(c, d.tec, d.jan, ags, d.em);
+    if (parAgendado && dp.em < d.em) p.unshift("duplicado do #" + chamado(par).prot + " (mesmo cliente e contrato): cliente agendado duas vezes");
+    return p.length ? erro(p.join("; ")) : ok("Agendamento válido");
+  }
+
+  // Não agendado
+  if (parAgendado) {
+    return d.motivo === "duplicado" ? ok("Duplicado do #" + chamado(par).prot + ", que já está agendado")
+      : erro("Era duplicado do #" + chamado(par).prot + " (mesmo cliente e contrato). Motivo correto: " + MOTIVOS.duplicado);
+  }
+  if (c.esperado) {
+    return d.motivo === c.esperado ? ok(MOTIVOS[c.esperado]) : erro("Motivo correto: " + MOTIVOS[c.esperado]);
+  }
+  var v = vagaLivre(c, ags);
+  if (d.motivo === "sem_vaga") return v ? erro("Havia vaga: " + v.t.nome + ", " + v.j.label) : ok("Realmente não havia técnico/janela compatível livre");
+  if (d.motivo === "duplicado") return erro(par ? "Marcado como duplicado, mas o outro chamado do cliente não foi agendado" : "Não é um chamado duplicado");
+  return erro(v ? "Motivo incorreto. Havia vaga: " + v.t.nome + ", " + v.j.label : "Motivo correto: " + MOTIVOS.sem_vaga);
+}
+
+/* =====================================================================
+ * FINALIZAÇÃO E RESULTADO
+ * ===================================================================== */
+function finalizar(automatico) {
+  if (st.fim) return;
+  st.fim = true;
+  clearInterval(relogio);
+  window.removeEventListener("beforeunload", avisoSaida);
+
+  var ags = agendamentos();
+  var linhas = CHAMADOS.map(function (c) { return { c: c, d: st.decisoes[c.n], r: avaliar(c, ags) }; });
+  var acertos = linhas.filter(function (l) { return l.r.ok; }).length;
+  var usado = Math.min((Date.now() - st.inicio) / 1000, CONFIG.DURACAO_MIN * 60);
+  var tempos = Object.keys(st.primeira).map(function (n) { return (st.primeira[n] - st.chegada[n]) / 1000; });
+  var medio = tempos.length ? tempos.reduce(function (a, b) { return a + b; }, 0) / tempos.length : 0;
+  var classe = acertos >= 13 ? "Excelente" : acertos >= 10 ? "Bom" : acertos >= 7 ? "Regular" : "Insuficiente";
+
+  // Pegadinha 1: técnico de férias
+  var comFerias = ags.filter(function (a) { return !tecnico(a.tec).ativo; });
+  var peg1 = comFerias.length
+    ? { cls: "nok", txt: "Caiu", obs: "Agendou com técnico de férias: " + comFerias.map(function (a) { return "#" + chamado(a.n).prot + " (" + tecnico(a.tec).nome + ")"; }).join(", ") }
+    : { cls: "ok", txt: "Passou", obs: "Não usou o técnico que está de férias (Marcos Pereira)." };
+
+  // Pegadinha 2: chamado duplicado
+  var dupC = CHAMADOS.find(function (c) { return c.dup; });
+  var dA = st.decisoes[dupC.dup], dB = st.decisoes[dupC.n];
+  var ag = function (d) { return d && d.tipo === "agendar"; };
+  var du = function (d) { return d && d.tipo === "nao" && d.motivo === "duplicado"; };
+  var peg2 = ag(dA) && ag(dB) ? { cls: "nok", txt: "Caiu", obs: "Agendou o mesmo cliente duas vezes (#" + chamado(dupC.dup).prot + " e #" + dupC.prot + ")." }
+    : (ag(dA) && du(dB)) || (du(dA) && ag(dB)) ? { cls: "ok", txt: "Passou", obs: "Identificou que #" + dupC.prot + " e #" + chamado(dupC.dup).prot + " são o mesmo cliente/contrato." }
+    : { cls: "neutro", txt: "Não identificou", obs: "Não agendou um e marcou o outro como duplicado." };
+
+  $("tela-teste").hidden = true;
+  $("btn-finalizar").hidden = true;
+  $("topo-timer").hidden = true;
+  $("topo-contadores").hidden = true;
+  document.title = "Teste COP - " + st.nome; // vira o nome sugerido do PDF
+
+  var r = $("tela-resultado");
+  r.hidden = false;
+  r.innerHTML =
+    '<div class="relatorio">' +
+    '<div class="rel-cab"><img class="avanca" src="img/avanca-logo.png" alt="Avança">' +
+      '<div class="titulo"><b>Teste prático de agendamento</b><span>Centro de Operações · COP</span></div>' +
+      '<img class="cop" src="img/cop-logo.jpg" alt="COP"></div>' +
+    '<div class="card"><h2>Resultado' + (automatico ? " · tempo esgotado" : "") + "</h2>" +
+      '<div class="res-topo">' +
+        '<div class="kpi"><span>Candidato</span><b class="kpi-nome">' + esc(st.nome) + "</b><br><small>" + new Date().toLocaleString("pt-BR") + "</small></div>" +
+        '<div class="kpi"><span>Acertos</span><b>' + acertos + "/" + CHAMADOS.length + "</b> <small>" + Math.round(acertos / CHAMADOS.length * 100) + "% · " + classe + "</small></div>" +
+        '<div class="kpi"><span>Tempo usado</span><b>' + mmss(usado) + "</b> <small>de " + CONFIG.DURACAO_MIN + ":00</small></div>" +
+        '<div class="kpi"><span>Resposta média</span><b>' + mmss(medio) + "</b> <small>da chegada à decisão</small></div>" +
+      "</div>" +
+      '<div class="peg">' +
+        '<div class="card"><h2>Pegadinha 1 · Técnico de férias</h2><p class="' + peg1.cls + '">' + peg1.txt + "</p><p>" + esc(peg1.obs) + "</p></div>" +
+        '<div class="card"><h2>Pegadinha 2 · Chamado duplicado</h2><p class="' + peg2.cls + '">' + peg2.txt + "</p><p>" + esc(peg2.obs) + "</p></div>" +
+      "</div>" +
+    "</div>" +
+    '<div class="card"><h2>Chamado a chamado</h2><div class="rolar"><table><thead><tr><th class="col-prot">Protocolo</th><th class="col-cham">Chamado</th><th class="col-dec">Decisão do candidato</th><th class="col-res"></th><th>Correção</th></tr></thead><tbody>' +
+      linhas.map(function (l) {
+        return '<tr class="' + (l.r.ok ? "" : "linha-nok") + '"><td>#' + l.c.prot + "</td><td><b>" + esc(l.c.cliente) + "</b><br>" + esc(l.c.cidade) + " · " + esc(l.c.tipo) + " · " + esc(l.c.pref.replace(/ \(.*\)$/, "")) +
+          "</td><td>" + (!l.d ? "—" : l.d.tipo === "agendar"
+            ? "Agendado: " + esc(tecnico(l.d.tec).nome) + '<br><span style="white-space:nowrap">' + janela(l.d.jan).label + "</span>"
+            : "Não agendado: " + esc(MOTIVOS[l.d.motivo])) +
+          '</td><td class="col-res ' + (l.r.ok ? "ok" : "nok") + '">' + (l.r.ok ? "✓" : "✗") + "</td><td>" + esc(l.r.obs) + "</td></tr>";
+      }).join("") +
+    "</tbody></table></div></div>" +
+    '<div class="assin"><div>Avaliador</div><div>Candidato</div></div>' +
+    '<div class="rel-rodape"><img src="img/marcas.png" alt="Alta Rede | AMO | K2"><span>Gerado em ' + new Date().toLocaleString("pt-BR") + "</span></div>" +
+    "</div>" +
+    '<div class="botoes relatorio"><button class="btn btn-primario" id="btn-copiar">Copiar resultado</button>' +
+    '<button class="btn btn-claro" onclick="window.print()">Imprimir / salvar PDF (A4)</button>' +
+    '<button class="btn btn-claro" onclick="location.reload()">Novo teste</button></div>';
+
+  $("btn-copiar").onclick = function () {
+    var txt = [
+      "TESTE DE AGENDAMENTO COP",
+      "Candidato: " + st.nome,
+      "Data: " + new Date().toLocaleString("pt-BR"),
+      "Acertos: " + acertos + "/" + CHAMADOS.length + " (" + classe + ")",
+      "Tempo usado: " + mmss(usado) + " · Resposta média: " + mmss(medio),
+      "Pegadinha técnico de férias: " + peg1.txt,
+      "Pegadinha chamado duplicado: " + peg2.txt,
+      ""
+    ].concat(linhas.map(function (l) {
+      return (l.r.ok ? "[OK]   " : "[ERRO] ") + "#" + l.c.prot + " " + l.c.cidade + " / " + l.c.tipo + " -> " +
+        (l.d ? resumoDecisao(l.d) : "não tratado") + (l.r.ok ? "" : " | " + l.r.obs);
+    })).join("\n");
+    navigator.clipboard.writeText(txt).then(function () { toast("Resultado copiado."); }, function () { toast("Não foi possível copiar."); });
+  };
+}
+
+renderFila();
+renderDetalhe();
+</script>
+</body>
+</html>

@@ -191,7 +191,7 @@ tr.linha-nok td{background:#FFF7F7}
   <div class="espaco"></div>
   <div class="stat" id="topo-candidato" hidden></div>
   <div class="stat" id="topo-contadores" hidden></div>
-  <div class="timer" id="topo-timer" hidden>15:00</div>
+  <div class="timer" id="topo-timer" hidden>20:00</div>
   <button class="btn btn-perigo" id="btn-finalizar" hidden>Finalizar teste</button>
 </header>
 
@@ -211,7 +211,7 @@ tr.linha-nok td{background:#FFF7F7}
         <li>Para cada chamado, <b>agende</b> (técnico + janela) ou <b>não agende</b> e informe o motivo.</li>
         <li>Antes de agendar, confira a <b>escala técnica</b>, as <b>regras de atendimento</b> e a <b>preferência do cliente</b>. O sistema não bloqueia erros: a responsabilidade é sua.</li>
         <li>Se precisar corrigir algo, você pode <b>reabrir</b> um chamado já tratado.</li>
-        <li>O teste tem <b id="ini-duracao">15</b> minutos e no máximo 15 chamados. Ao fim do tempo ele é encerrado automaticamente.</li>
+        <li>O teste tem <b id="ini-duracao">20</b> minutos e no máximo 15 chamados. Ao fim do tempo ele é encerrado automaticamente.</li>
       </ol>
 
       <div class="campo">
@@ -272,9 +272,9 @@ tr.linha-nok td{background:#FFF7F7}
  * Ajuste aqui a duração do teste e o ritmo de chegada dos chamados.
  * ===================================================================== */
 var CONFIG = {
-  DURACAO_MIN: 15,   // tempo total do teste
+  DURACAO_MIN: 20,   // tempo total do teste
   INICIAIS: 2,       // chamados que já estão na fila ao iniciar
-  INTERVALO_S: 35    // segundos entre a chegada de um chamado e o próximo
+  INTERVALO_S: 45    // segundos entre a chegada de um chamado e o próximo
 };
 
 var JANELAS = [
